@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unifi-controller-deployment
+  labels:
+    app: unifi-controller
+spec:
+  replicas: 1
+  strategy:
+    type: "Recreate"
+  selector:
+    matchLabels:
+      app: unifi-controller
+  template:
+    metadata:
+      labels:
+        app: unifi-controller
+    spec:
+      volumes:
+        - name: config-storage
+          persistentVolumeClaim:
+            claimName: unifi-config-pvc
+      containers:
+      - name: unifi-controller
+        image: linuxserver/unifi-controller
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        ports:
+        - containerPort: 3478
+          protocol: UDP
+          name: "stun"
+        - containerPort: 10001
+          protocol: UDP
+          name: "ap-discovery"
+        - containerPort: 8080
+          name: "device-comm"
+        - containerPort: 8443
+          name: "web-admin"
+        - containerPort: 1900
+          protocol: UDP
+          name: "discoverable-l2"
+        - containerPort: 8843
+          name: "portal-https"
+        - containerPort: 8880
+          name: "portal-http"
+        - containerPort: 6789
+          name: "mobile-test"
+        - containerPort: 5514
+          name: "remote-syslog"
+        volumeMounts:
+        - mountPath: "/config"
+          name: config-storage
